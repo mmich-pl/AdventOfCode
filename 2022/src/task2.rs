@@ -35,6 +35,14 @@ impl Move{
         }
     }
 
+    fn less(&self) -> Self {
+        match self {
+             Move::Paper => Move::Rock ,
+             Move::Scissors => Move::Paper,
+             Move::Rock => Move::Scissors,
+        }
+    }
+
     fn play(our: Move, their: Move) -> (i32, i32) {
         let (o, t) = if our == their {
             (3, 3)
@@ -61,8 +69,26 @@ impl FromStr for Move {
     }
 }
 
+enum Outcome {
+    Win,
+    Lose,
+    Draw,
+}
 
-fn lines_from_file(filename: impl AsRef<Path>) -> std::io::Result<Vec<Vec<Move>>> {
+impl FromStr for Outcome {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "X" => Ok(Outcome::Lose),
+            "Y" => Ok(Outcome::Draw),
+            "Z" => Ok(Outcome::Win),
+            _ => todo!(),
+        }
+    }
+}
+
+fn lines_from_file(filename: impl AsRef<Path>) -> std::io::Result<Vec<Vec<String>>> {
     let file = File::open(filename).expect("no such file");
     let buf = BufReader::new(file);
 
@@ -72,25 +98,49 @@ fn lines_from_file(filename: impl AsRef<Path>) -> std::io::Result<Vec<Vec<Move>>
         let line = line?;
         let items = line
             .split(' ')
-            .map(|n| Move::from_str(n).unwrap())
+            .map(|n| n.parse().expect("Can't parse sybol"))
             .collect();
         res.push(items);
     }
     Ok(res)
 }
 
-pub fn main() {
+fn part_1() {
     let lines = lines_from_file("src/data/task2.txt").unwrap();
 
     let mut sum = 0;
 
     for item in lines {
-       let opponent = item[0];
-       let we = item[1];
+       let opponent = Move::from_str(&item[0]).unwrap();
+       let we = Move::from_str(&item[1]).unwrap();
         let game_results = Move::play(we, opponent);
        sum += game_results.0;
     }
 
     println!("{:?}", sum);
+}
 
+fn part_2(){
+    let lines = lines_from_file("src/data/task2.txt").unwrap();
+
+    let mut sum = 0;
+
+    for item in lines {
+       let opponent = Move::from_str(&item[0]).unwrap();
+       let outcome = Outcome::from_str(&item[1]).unwrap();
+       let we = match (opponent, outcome) {
+            (t, Outcome::Draw) => t,
+            (t, Outcome::Win) => t.greater(),
+            (t, Outcome::Lose) => t.less(),
+        };
+        let score = Move::play(we, opponent);
+        sum += score.0;
+    }
+    println!("{:?}", sum);
+}
+
+
+pub fn main() {
+    part_1();
+    part_2();
 }
