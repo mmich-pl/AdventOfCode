@@ -9,6 +9,7 @@ fn contains(elf_1: &[i8], elf_2: &[i8]) -> bool {
 fn contains_any(elf_1: &[i8], elf_2: &[i8]) -> bool {
     !(elf_1[0] > elf_2[1] || elf_1[1] < elf_2[0])
 }
+
 fn get_ranges(input: &[String], f: fn(&[i8], &[i8]) -> bool) -> i16 {
     input.iter().map(|line| {
         let ranges = line.split(',')
